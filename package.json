@@ -1,0 +1,16 @@
+{
+  "name": "FirstFolio",
+  "version": "0.0.1",
+  "description": "A simple command-line tool for downloading texts",
+  "author": "Iain Emsley",
+  "engines": {
+    "node": ">=0.10"
+  },
+  "dependencies": {
+    "commander": "~2.2.0",
+    "request": "~2.36.0"
+  },
+  "bin": {
+    "bdltext": "bdltext.js"
+  }
+} 
