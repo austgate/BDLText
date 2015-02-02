@@ -51,7 +51,9 @@ program
     } else if ( program.remove ) {
        var code = program.remove;
        //@todo check the short url against a list of FF Shakespeare texts
-       (code.substring(0,1) == "A" ) ? deleteFolderRecursive(code) : removeXmlFile(code);        
+       (code.substring(0,1) == "A"||code.substring(0,1) == "N") ? deleteFolderRecursive(code) : removeXmlFile(code);        
+    } else if (program.update) {
+        update_index();
     } else {
        console.log("Error with " + cmd.textshortcode);
     }
@@ -109,6 +111,13 @@ function listtcptexts () {
        });
    } 
    return texts_;
+}
+
+/**
+* Update the Git indexes
+*/
+function update_index() {
+    download_git('Texts');
 }
 
 /**
