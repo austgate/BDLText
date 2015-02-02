@@ -19,15 +19,25 @@ var makeDataDir = function () {
   }
 }
 
+var checkRepos = function() {
+   console.log('Installing the TCP index. Please wait...');
+   if (! fs.existsSync('./data/Texts/TCP.json')) {
+       download_git('Texts');
+   }
+   console.log('Index installed. Please update with the update option.');
+}
+
 program
    .version('0.0.1')
    .option('-f, --fetch [textshortcode]', 'Download the text')
    .option('-l, --list', 'List all stored texts')
    .option('-s, --search [short]', 'List texts that are available for download')
-   .option('-r, --remove [textshortcode]', 'Remove the local copy of the file') 
+   .option('-r, --remove [textshortcode]', 'Remove the local copy of the file')
+   .option('-u, --update', 'Update the repositories') 
    .parse(process.argv)
 
    makeDataDir();
+   checkRepos();
 
    if ( program.fetch ) {
        var code = program.fetch;
@@ -78,7 +88,7 @@ function removeXmlFile (code) {
 */
 function listtexts () {
    var texts_ = []
-   var tmp_ = JSON.parse(fs.readFileSync('FF.json', 'utf-8'));
+   var tmp_ = JSON.parse(fs.readFileSync('./data/FF.json', 'utf-8'));
    tmp_.texts.forEach( function (item) {
        texts_.push('\n(' + item.id + ') ' + item.title);
    });
@@ -90,36 +100,14 @@ function listtexts () {
 */
 function listtcptexts () {
    var texts_ = []
-   if ( fs.existsSync('TCP.json')) {
-       var tmp_ = JSON.parse(fs.readFileSync('TCP.json', 'utf-8'));
+   if ( fs.existsSync('./data/Texts/TCP.json')) {
+       var tmp_ = JSON.parse(fs.readFileSync('./data/Texts/TCP.json', 'utf-8'));
        tmp_.records.forEach( function (item) {
            if (item.Status == "Free") {
                texts_.push('\n(' + item.TCP + ') ' + item.Title);
            }
        });
-   } else {
-       var tcp_url = "https://raw.githubusercontent.com/textcreationpartnership/Texts/master/TCP.json";
-       
-       request({
-           method: 'GET',
-           url: tcp_url
-       }, function(error, response, body) {
-
-           if (!error && response.statusCode == 200) {
-              var body = body;
-              fs.writeFile('TCP.json', body, function(err) {
-                 if(err) {
-                     console.log(err);
-                 } else {
-                     console.log("The file was saved!");
-                 }
-              }); //end fs
-              listtcptexts();
-           } else if (error) {
-              console.log('BDLText Error: ' + error);
-           }
-       });
-   }
+   } 
    return texts_;
 }
 
@@ -174,8 +162,7 @@ function download_git(shortcode) {
     move_dir('./data');
     
     var git_url = "https://github.com/textcreationpartnership/" + shortcode + ".git";
-    var git = spawn('git', ['clone', git_url]);
-     
+    var git = spawn('git', ['clone', git_url]); 
     git.stderr.on('data', function (data) {
        console.log('BDLText error: ' + data);
     });   
