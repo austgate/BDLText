@@ -23,7 +23,7 @@ program
    .version('0.0.1')
    .option('-f, --fetch [textshortcode]', 'Download the text')
    .option('-l, --list', 'List all stored texts')
-   .option('-s, --search', 'List texts that are available for download')
+   .option('-s, --search [short]', 'List texts that are available for download')
    .option('-r, --remove [textshortcode]', 'Remove the local copy of the file') 
    .parse(process.argv)
 
@@ -36,7 +36,8 @@ program
     } else if ( program.list ) {
        console.log(listfiles());
     } else if ( program.search ) {
-       console.log(listtexts().toString());
+       console.log(program.search);
+       (program.search == "TCP" ) ? console.log(listtcptexts().toString()) : console.log(listtexts().toString());
     } else if ( program.remove ) {
        var code = program.remove;
        //@todo check the short url against a list of FF Shakespeare texts
@@ -77,10 +78,48 @@ function removeXmlFile (code) {
 */
 function listtexts () {
    var texts_ = []
-   var tmp_ = JSON.parse(fs.readFileSync('list.json', 'utf-8'));
+   var tmp_ = JSON.parse(fs.readFileSync('FF.json', 'utf-8'));
    tmp_.texts.forEach( function (item) {
        texts_.push('\n(' + item.id + ') ' + item.title);
    });
+   return texts_;
+}
+
+/**
+*  Read the data list
+*/
+function listtcptexts () {
+   var texts_ = []
+   if ( fs.existsSync('TCP.json')) {
+       var tmp_ = JSON.parse(fs.readFileSync('TCP.json', 'utf-8'));
+       tmp_.records.forEach( function (item) {
+           if (item.Status == "Free") {
+               texts_.push('\n(' + item.TCP + ') ' + item.Title);
+           }
+       });
+   } else {
+       var tcp_url = "https://raw.githubusercontent.com/textcreationpartnership/Texts/master/TCP.json";
+       
+       request({
+           method: 'GET',
+           url: tcp_url
+       }, function(error, response, body) {
+
+           if (!error && response.statusCode == 200) {
+              var body = body;
+              fs.writeFile('TCP.json', body, function(err) {
+                 if(err) {
+                     console.log(err);
+                 } else {
+                     console.log("The file was saved!");
+                 }
+              }); //end fs
+              listtcptexts();
+           } else if (error) {
+              console.log('BDLText Error: ' + error);
+           }
+       });
+   }
    return texts_;
 }
 
